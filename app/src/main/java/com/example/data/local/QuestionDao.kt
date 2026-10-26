@@ -17,6 +17,20 @@ interface QuestionDao {
     @Query("SELECT * FROM questions WHERE grade = :grade")
     fun getQuestionsByGrade(grade: Int): Flow<List<QuestionEntity>>
 
+    @Query("SELECT DISTINCT topic FROM questions WHERE grade = :grade ORDER BY topic ASC")
+    fun getTopicsForGrade(grade: Int): Flow<List<String>>
+
+    @Query(
+        """
+        SELECT * FROM questions 
+        WHERE grade = :grade 
+          AND (:topic IS NULL OR topic = :topic) 
+          AND (:difficulty IS NULL OR difficulty = :difficulty)
+        ORDER BY id ASC
+        """
+    )
+    fun getFilteredQuestions(grade: Int, topic: String?, difficulty: String?): Flow<List<QuestionEntity>>
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertQuestion(question: QuestionEntity)
 

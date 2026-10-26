@@ -11,7 +11,7 @@ class AppVersionTest {
     fun testAppVersionIsNotEmpty() {
         assertNotNull(BuildConfig.VERSION_NAME)
         assertTrue("App versionName must not be empty", BuildConfig.VERSION_NAME.isNotEmpty())
-        assertEquals("0.1.1", BuildConfig.VERSION_NAME)
-        assertEquals(2, BuildConfig.VERSION_CODE)
+        assertEquals("0.1.2", BuildConfig.VERSION_NAME)
+        assertEquals(3, BuildConfig.VERSION_CODE)
     }
 }

@@ -11,11 +11,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.data.local.QuestionDao
 import com.example.data.settings.SettingsRepository
 import com.example.data.settings.ThemeMode
 import com.example.data.settings.UserSettings
@@ -26,6 +28,8 @@ import com.example.ui.screens.DashboardScreen
 import com.example.ui.screens.ExamScreen
 import com.example.ui.screens.MistakesScreen
 import com.example.ui.screens.PracticeScreen
+import com.example.ui.screens.PracticeViewModel
+import com.example.ui.screens.PracticeViewModelFactory
 import com.example.ui.screens.SettingsScreen
 import kotlinx.coroutines.launch
 
@@ -33,6 +37,7 @@ import kotlinx.coroutines.launch
 fun AppNavigation(
     userSettings: UserSettings,
     settingsRepository: SettingsRepository,
+    questionDao: QuestionDao,
     modifier: Modifier = Modifier
 ) {
     val navController = rememberNavController()
@@ -95,7 +100,10 @@ fun AppNavigation(
                     DashboardScreen()
                 }
                 composable(BottomTab.Practice.route) {
-                    PracticeScreen()
+                    val practiceViewModel: PracticeViewModel = viewModel(
+                        factory = PracticeViewModelFactory(questionDao)
+                    )
+                    PracticeScreen(viewModel = practiceViewModel)
                 }
                 composable(BottomTab.Exam.route) {
                     ExamScreen()

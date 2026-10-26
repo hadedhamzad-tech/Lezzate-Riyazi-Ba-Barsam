@@ -5,7 +5,42 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Color
 import com.example.data.settings.ThemeMode
+
+@Immutable
+data class ExtendedColors(
+    val success: Color,
+    val onSuccess: Color,
+    val successContainer: Color,
+    val onSuccessContainer: Color
+)
+
+val LocalExtendedColors = staticCompositionLocalOf {
+    ExtendedColors(
+        success = Color.Unspecified,
+        onSuccess = Color.Unspecified,
+        successContainer = Color.Unspecified,
+        onSuccessContainer = Color.Unspecified
+    )
+}
+
+val LightExtendedColors = ExtendedColors(
+    success = LightSuccess,
+    onSuccess = LightOnSuccess,
+    successContainer = LightSuccessContainer,
+    onSuccessContainer = LightOnSuccessContainer
+)
+
+val DarkExtendedColors = ExtendedColors(
+    success = DarkSuccess,
+    onSuccess = DarkOnSuccess,
+    successContainer = DarkSuccessContainer,
+    onSuccessContainer = DarkOnSuccessContainer
+)
 
 private val DarkColorScheme = darkColorScheme(
     primary = JadeGreenDarkPrimary,
@@ -65,10 +100,13 @@ fun AppTheme(
     }
 
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val extendedColors = if (darkTheme) DarkExtendedColors else LightExtendedColors
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+    CompositionLocalProvider(LocalExtendedColors provides extendedColors) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = Typography,
+            content = content
+        )
+    }
 }

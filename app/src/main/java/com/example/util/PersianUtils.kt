@@ -1,6 +1,11 @@
 package com.example.util
 
 object PersianUtils {
+    const val LRI = '\u2066'
+    const val PDI = '\u2069'
+    private const val MATH_SYMBOLS = "+-−*·×/÷=≠<>≤≥^√π∞→|±∓²³⁴ⁿ⁻⁺⁰¹₂₃₄°~Δαβθλμσω∪∩∠≡∨∧∈"
+    private const val MATH_CLOSING_DELIMITERS = ")]}|'\""
+
     private val PERSIAN_DIGITS = charArrayOf('۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹')
 
     /**
@@ -20,10 +25,59 @@ object PersianUtils {
 
     /**
      * Wraps mathematical formulas in Unicode Left-to-Right Isolate (LRI U+2066)
-     * and Pop Directional Isolate (PDI U+2069) to ensure formulas render LTR with Latin digits
-     * inside RTL Persian paragraphs.
+     * and Pop Directional Isolate (PDI U+2069).
      */
     fun wrapMathFormula(formula: String): String {
-        return "\u2066$formula\u2069"
+        return "$LRI$formula$PDI"
+    }
+
+    fun isPersian(c: Char): Boolean {
+        val code = c.code
+        return (code in 0x0600..0x06FF) || (code in 0x0750..0x077F) || (code in 0x08A0..0x08FF) ||
+               (code in 0xFB50..0xFDFF) || (code in 0xFE70..0xFEFF)
+    }
+
+    fun isCoreMathChar(c: Char): Boolean =
+        (c in 'a'..'z') || (c in 'A'..'Z') || (c in '0'..'9') || (c in MATH_SYMBOLS)
+
+    fun isMathAllowedChar(c: Char): Boolean =
+        isCoreMathChar(c) || (c in "()[]{}(),.:;!_'\" \t\n")
+
+    fun canStartMath(c: Char): Boolean =
+        isCoreMathChar(c) || (c in "([{|")
+
+    fun canEndMath(c: Char): Boolean =
+        (c in 'a'..'z') || (c in 'A'..'Z') || (c in '0'..'9') ||
+        (c in MATH_CLOSING_DELIMITERS) || (c in "²³⁴ⁿ⁻⁺⁰¹₂₃₄°π∞Δαβθλμσω")
+
+    fun formatMathText(input: String?): String {
+        if (input.isNullOrEmpty()) return input ?: ""
+        val text = input.replace(LRI.toString(), "").replace(PDI.toString(), "")
+        val sb = StringBuilder()
+        var i = 0
+        val n = text.length
+        while (i < n) {
+            val c = text[i]
+            if (canStartMath(c) && !isPersian(c)) {
+                var j = i
+                var lastValidEnd = -1
+                var hasCoreMath = false
+                while (j < n) {
+                    val cur = text[j]
+                    if (isPersian(cur) || !isMathAllowedChar(cur)) break
+                    if (isCoreMathChar(cur)) hasCoreMath = true
+                    if (canEndMath(cur) && hasCoreMath) lastValidEnd = j
+                    j++
+                }
+                if (lastValidEnd >= i && hasCoreMath) {
+                    sb.append(LRI).append(text.substring(i, lastValidEnd + 1)).append(PDI)
+                    i = lastValidEnd + 1
+                    continue
+                }
+            }
+            sb.append(c)
+            i++
+        }
+        return sb.toString()
     }
 }

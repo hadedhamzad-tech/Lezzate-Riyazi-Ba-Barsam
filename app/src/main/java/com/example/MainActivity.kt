@@ -6,20 +6,31 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import com.example.data.local.AppDatabase
+import com.example.data.local.QuestionImporter
 import com.example.data.settings.SettingsRepository
 import com.example.data.settings.UserSettings
 import com.example.ui.navigation.AppNavigation
 import com.example.ui.theme.AppTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        val database = AppDatabase.getInstance(applicationContext)
+        val questionDao = database.questionDao()
         val settingsRepository = SettingsRepository(applicationContext)
+
+        // Run question bank importer in background without blocking UI
+        lifecycleScope.launch(Dispatchers.IO) {
+            QuestionImporter(applicationContext, questionDao).importFromAsset()
+        }
 
         setContent {
             val userSettings by settingsRepository.userSettingsFlow.collectAsStateWithLifecycle(
@@ -30,6 +41,7 @@ class MainActivity : ComponentActivity() {
                 AppNavigation(
                     userSettings = userSettings,
                     settingsRepository = settingsRepository,
+                    questionDao = questionDao,
                     modifier = Modifier.fillMaxSize()
                 )
             }

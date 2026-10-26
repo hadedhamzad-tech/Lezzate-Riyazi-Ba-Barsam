@@ -27,6 +27,12 @@ val LightOnSurfaceVariant = Color(0xFF404944)
 val LightOutline = Color(0xFF707974)
 val LightOutlineVariant = Color(0xFFBFC9C2)
 
+// Light Success Colors
+val LightSuccess = Color(0xFF1E6B37)
+val LightOnSuccess = Color(0xFFFFFFFF)
+val LightSuccessContainer = Color(0xFFB0F4B2)
+val LightOnSuccessContainer = Color(0xFF002208)
+
 // Dark Scheme Colors - Jade Green & Amber
 val JadeGreenDarkPrimary = Color(0xFF6CDBAC)
 val JadeGreenDarkOnPrimary = Color(0xFF003825)
@@ -51,3 +57,9 @@ val DarkSurfaceVariant = Color(0xFF404944)
 val DarkOnSurfaceVariant = Color(0xFFBFC9C2)
 val DarkOutline = Color(0xFF8A938D)
 val DarkOutlineVariant = Color(0xFF404944)
+
+// Dark Success Colors
+val DarkSuccess = Color(0xFF95D798)
+val DarkOnSuccess = Color(0xFF003912)
+val DarkSuccessContainer = Color(0xFF135322)
+val DarkOnSuccessContainer = Color(0xFFB0F4B2)

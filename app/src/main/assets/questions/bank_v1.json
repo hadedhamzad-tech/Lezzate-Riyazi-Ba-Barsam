@@ -1,0 +1,41 @@
+[
+  {
+    "id": "BK_q1258",
+    "grade": 12,
+    "difficulty": "آسان",
+    "topic": "مشتق",
+    "questionText": "اگر f(x) = 3x² + x - 8 باشد، f'(1) چند است؟",
+    "option1": "4",
+    "option2": "6",
+    "option3": "-4",
+    "option4": "7",
+    "correctOptionIndex": 3,
+    "explanation": "f'(x) = 6x + 1 پس f'(1) = 7."
+  },
+  {
+    "id": "BK_q1041",
+    "grade": 11,
+    "difficulty": "کنکوری",
+    "topic": "مثلثات",
+    "questionText": "مقدار دقیق cos15° کدام است؟",
+    "option1": "(√6 + √2)/4",
+    "option2": "2 + √3",
+    "option3": "2 - √3",
+    "option4": "(√6 - √2)/4",
+    "correctOptionIndex": 0,
+    "explanation": "زاویه را بهصورت مجموع یا تفاضل زاویههای خاص (45° و 30°) نوشته و از فرمولهای جمع و تفاضل استفاده میکنیم."
+  },
+  {
+    "id": "BK_q0954",
+    "grade": 11,
+    "difficulty": "کنکوری",
+    "topic": "آشنایی با مبانی ریاضیات",
+    "questionText": "در مجموعهی A، B و C داریم n(A) = 25، n(B) = 25، n(C) = 30، n(A ∩ B) = 2، n(A ∩ C) = 2، n(B ∩ C) = 7 و n(A ∩ B ∩ C) = 1.\nn(A ∪ B ∪ C) چند است؟",
+    "option1": "69",
+    "option2": "70",
+    "option3": "68",
+    "option4": "80",
+    "correctOptionIndex": 1,
+    "explanation": "اصل شمول و عدم شمول: جمع تکتکها منهای جمع اشتراکهای دوتایی بهاضافهٔ اشتراک سهتایی: 70."
+  }
+]
