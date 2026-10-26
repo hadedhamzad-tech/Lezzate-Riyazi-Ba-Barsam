@@ -9,12 +9,10 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlin.random.Random
 
 data class PracticeUiState(
     val selectedGrade: Int = 11,
@@ -24,12 +22,16 @@ data class PracticeUiState(
     val currentQuestion: QuestionEntity? = null,
     val selectedOptionIndex: Int? = null,
     val isAnswerLocked: Boolean = false,
-    val totalQuestionsCount: Int = 0,
+    val totalQuestionsInBank: Int = 0,
+    val filterMatchingCount: Int = 0,
+    val currentQuestionIndexInRound: Int = 0,
+    val isRoundFinished: Boolean = false,
     val isFilterEmpty: Boolean = false
 )
 
 class PracticeViewModel(
-    private val questionDao: QuestionDao
+    private val questionDao: QuestionDao,
+    val roundSession: PracticeRoundSession = PracticeRoundSession()
 ) : ViewModel() {
 
     private val _selectedGrade = MutableStateFlow(11)
@@ -38,8 +40,7 @@ class PracticeViewModel(
 
     private val _selectedOptionIndex = MutableStateFlow<Int?>(null)
     private val _isAnswerLocked = MutableStateFlow(false)
-    private val _currentQuestion = MutableStateFlow<QuestionEntity?>(null)
-    private var lastQuestionId: String? = null
+    private val _roundStateVersion = MutableStateFlow(0)
 
     val totalCountFlow = questionDao.getAllQuestions().stateIn(
         viewModelScope,
@@ -75,18 +76,21 @@ class PracticeViewModel(
         combine(_selectedGrade, _selectedTopic, _selectedDifficulty) { g, t, d -> Triple(g, t, d) },
         availableTopics,
         filteredQuestions,
-        combine(_currentQuestion, _selectedOptionIndex, _isAnswerLocked) { q, opt, locked -> Triple(q, opt, locked) },
+        combine(_selectedOptionIndex, _isAnswerLocked, _roundStateVersion) { opt, locked, _ -> Pair(opt, locked) },
         totalCountFlow
-    ) { (grade, topic, difficulty), topics, questions, (currentQ, optIdx, locked), allQuestions ->
+    ) { (grade, topic, difficulty), topics, questions, (optIdx, locked), allQuestions ->
         PracticeUiState(
             selectedGrade = grade,
             selectedTopic = topic,
             selectedDifficulty = difficulty,
             availableTopics = topics,
-            currentQuestion = currentQ,
+            currentQuestion = roundSession.currentQuestion,
             selectedOptionIndex = optIdx,
             isAnswerLocked = locked,
-            totalQuestionsCount = allQuestions.size,
+            totalQuestionsInBank = allQuestions.size,
+            filterMatchingCount = roundSession.totalCount,
+            currentQuestionIndexInRound = roundSession.questionNumber,
+            isRoundFinished = roundSession.isRoundFinished,
             isFilterEmpty = allQuestions.isNotEmpty() && questions.isEmpty()
         )
     }.stateIn(
@@ -98,7 +102,11 @@ class PracticeViewModel(
     init {
         viewModelScope.launch {
             filteredQuestions.collect { list ->
-                pickQuestion(list)
+                val wasUpdated = roundSession.setQuestions(list)
+                if (wasUpdated) {
+                    resetAnswer()
+                    _roundStateVersion.value++
+                }
             }
         }
     }
@@ -112,13 +120,17 @@ class PracticeViewModel(
     }
 
     fun onTopicSelected(topic: String?) {
-        _selectedTopic.value = topic
-        resetAnswer()
+        if (_selectedTopic.value != topic) {
+            _selectedTopic.value = topic
+            resetAnswer()
+        }
     }
 
     fun onDifficultySelected(difficulty: String?) {
-        _selectedDifficulty.value = difficulty
-        resetAnswer()
+        if (_selectedDifficulty.value != difficulty) {
+            _selectedDifficulty.value = difficulty
+            resetAnswer()
+        }
     }
 
     fun selectOption(index: Int) {
@@ -129,43 +141,31 @@ class PracticeViewModel(
     }
 
     fun nextQuestion() {
-        lastQuestionId = _currentQuestion.value?.id
         resetAnswer()
-        pickQuestion(filteredQuestions.value)
+        roundSession.next()
+        _roundStateVersion.value++
+    }
+
+    fun restartRound() {
+        resetAnswer()
+        roundSession.restart()
+        _roundStateVersion.value++
     }
 
     private fun resetAnswer() {
         _selectedOptionIndex.value = null
         _isAnswerLocked.value = false
     }
-
-    private fun pickQuestion(questions: List<QuestionEntity>) {
-        if (questions.isEmpty()) {
-            _currentQuestion.value = null
-            return
-        }
-
-        val next = if (questions.size == 1) {
-            questions[0]
-        } else {
-            val candidates = questions.filter { it.id != lastQuestionId }
-            if (candidates.isNotEmpty()) {
-                candidates[Random.nextInt(candidates.size)]
-            } else {
-                questions[Random.nextInt(questions.size)]
-            }
-        }
-        _currentQuestion.value = next
-    }
 }
 
 class PracticeViewModelFactory(
-    private val questionDao: QuestionDao
+    private val questionDao: QuestionDao,
+    private val roundSession: PracticeRoundSession = PracticeRoundSession()
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(PracticeViewModel::class.java)) {
-            return PracticeViewModel(questionDao) as T
+            return PracticeViewModel(questionDao, roundSession) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

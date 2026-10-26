@@ -3,6 +3,7 @@ package com.example.util
 object PersianUtils {
     const val LRI = '\u2066'
     const val PDI = '\u2069'
+    const val COMING_SOON_TEXT = "به\u200Cزودی"
     private const val MATH_SYMBOLS = "+-−*·×/÷=≠<>≤≥^√π∞→|±∓²³⁴ⁿ⁻⁺⁰¹₂₃₄°~Δαβθλμσω∪∩∠≡∨∧∈"
     private const val MATH_CLOSING_DELIMITERS = ")]}|'\""
 

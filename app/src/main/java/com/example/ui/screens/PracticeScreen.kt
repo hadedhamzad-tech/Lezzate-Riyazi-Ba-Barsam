@@ -46,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.data.local.QuestionEntity
@@ -201,11 +202,21 @@ fun PracticeScreen(
                         )
                     }
                 }
+
+                // Count line near filters: "<N> سؤال در این فیلتر"
+                val countFa = PersianUtils.toPersianDigits(uiState.filterMatchingCount.toString())
+                Text(
+                    text = "$countFa سؤال در این فیلتر",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.testTag("filter_count_line")
+                )
             }
         }
 
         // --- 2. Content Area ---
-        if (uiState.totalQuestionsCount == 0) {
+        if (uiState.totalQuestionsInBank == 0) {
             // While importing and table is empty
             Card(
                 colors = CardDefaults.cardColors(
@@ -236,7 +247,7 @@ fun PracticeScreen(
                     )
                 }
             }
-        } else if (uiState.isFilterEmpty || uiState.currentQuestion == null) {
+        } else if (uiState.isFilterEmpty) {
             // Empty result for current filters
             Card(
                 colors = CardDefaults.cardColors(
@@ -263,11 +274,70 @@ fun PracticeScreen(
                     )
                 }
             }
-        } else {
+        } else if (uiState.isRoundFinished) {
+            // Finished all questions of current round
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                shape = MaterialTheme.shapes.large,
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp)
+                    .testTag("round_finished_card")
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = null,
+                        tint = LocalExtendedColors.current.success,
+                        modifier = Modifier.size(56.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "همهی سؤالهای این فیلتر را دیدی 🎉",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.testTag("round_finished_text")
+                    )
+                    Spacer(modifier = Modifier.height(20.dp))
+                    Button(
+                        onClick = { viewModel.restartRound() },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        ),
+                        shape = MaterialTheme.shapes.medium,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                            .testTag("restart_round_button")
+                    ) {
+                        Text(
+                            text = "دوباره از اول",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+        } else if (uiState.currentQuestion != null) {
             // Matching Question Display
             val question = uiState.currentQuestion!!
             QuestionPracticeCard(
                 question = question,
+                currentQuestionIndexInRound = uiState.currentQuestionIndexInRound,
+                totalQuestionsInRound = uiState.filterMatchingCount,
                 selectedOptionIndex = uiState.selectedOptionIndex,
                 isAnswerLocked = uiState.isAnswerLocked,
                 onOptionSelected = { index -> viewModel.selectOption(index) },
@@ -280,6 +350,8 @@ fun PracticeScreen(
 @Composable
 fun QuestionPracticeCard(
     question: QuestionEntity,
+    currentQuestionIndexInRound: Int,
+    totalQuestionsInRound: Int,
     selectedOptionIndex: Int?,
     isAnswerLocked: Boolean,
     onOptionSelected: (Int) -> Unit,
@@ -305,20 +377,24 @@ fun QuestionPracticeCard(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Header: Topic and Difficulty Tags
+            // Header: Progress label ("سؤال <i> از <N>") and Topic/Difficulty
+            val currentIdxFa = PersianUtils.toPersianDigits(currentQuestionIndexInRound.toString())
+            val totalFa = PersianUtils.toPersianDigits(totalQuestionsInRound.toString())
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = question.topic,
+                    text = "سؤال $currentIdxFa از $totalFa",
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.testTag("question_progress_label")
                 )
                 Text(
-                    text = "درجه: ${question.difficulty}",
+                    text = "${question.topic} • ${question.difficulty}",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.secondary
                 )

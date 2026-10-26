@@ -33,7 +33,7 @@ fun ExamScreen(modifier: Modifier = Modifier) {
         )
         Spacer(modifier = Modifier.height(12.dp))
         Text(
-            text = "بهزودی",
+            text = androidx.compose.ui.res.stringResource(com.example.R.string.coming_soon),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
