@@ -1,0 +1,6 @@
+{
+  "name": "لذت ریاضی با برسام",
+  "description": "اپلیکیشن تمرین و آزمون کنکور ریاضی برسام",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

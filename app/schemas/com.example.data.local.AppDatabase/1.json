@@ -1,0 +1,91 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "52d551caa01b67bc00c788dbc5b92e8c",
+    "entities": [
+      {
+        "tableName": "questions",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `grade` INTEGER NOT NULL, `difficulty` TEXT NOT NULL, `topic` TEXT NOT NULL, `questionText` TEXT NOT NULL, `option1` TEXT NOT NULL, `option2` TEXT NOT NULL, `option3` TEXT NOT NULL, `option4` TEXT NOT NULL, `correctOptionIndex` INTEGER NOT NULL, `explanation` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "grade",
+            "columnName": "grade",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "difficulty",
+            "columnName": "difficulty",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "topic",
+            "columnName": "topic",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "questionText",
+            "columnName": "questionText",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "option1",
+            "columnName": "option1",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "option2",
+            "columnName": "option2",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "option3",
+            "columnName": "option3",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "option4",
+            "columnName": "option4",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "correctOptionIndex",
+            "columnName": "correctOptionIndex",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "explanation",
+            "columnName": "explanation",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '52d551caa01b67bc00c788dbc5b92e8c')"
+    ]
+  }
+}

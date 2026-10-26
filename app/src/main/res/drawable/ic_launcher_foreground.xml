@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Math Radix (Square Root) in Amber -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#F6BE48"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M 26,56 L 33,56 L 40,74 L 52,34 L 84,34 L 84,42" />
+
+    <!-- Math 'x' symbol inside the radical in White -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:pathData="M 58,48 L 72,66 M 72,48 L 58,66" />
+
+    <!-- Small plus sign accent in Amber -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#F6BE48"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:pathData="M 33,36 L 33,46 M 28,41 L 38,41" />
+
+    <!-- Small dot accent in White -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M 76,72 A 3,3 0 1,1 76,72.01 Z" />
+</vector>
