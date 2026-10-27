@@ -218,7 +218,7 @@ fun SettingsScreen(
                     )
                 }
 
-                val formattedVersion = PersianUtils.toPersianDigits(BuildConfig.VERSION_NAME)
+                val formattedVersion = "${PersianUtils.LRI}${BuildConfig.VERSION_NAME}${PersianUtils.PDI}"
                 Text(
                     text = formattedVersion,
                     style = MaterialTheme.typography.titleMedium,

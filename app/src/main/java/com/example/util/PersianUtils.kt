@@ -38,11 +38,14 @@ object PersianUtils {
                (code in 0xFB50..0xFDFF) || (code in 0xFE70..0xFEFF)
     }
 
+    private const val OPENING_BRACKETS = "([{"
+    private const val CLOSING_BRACKETS = ")]}"
+
     fun isCoreMathChar(c: Char): Boolean =
         (c in 'a'..'z') || (c in 'A'..'Z') || (c in '0'..'9') || (c in MATH_SYMBOLS)
 
     fun isMathAllowedChar(c: Char): Boolean =
-        isCoreMathChar(c) || (c in "()[]{}(),.:;!_'\" \t\n")
+        isCoreMathChar(c) || (c in "()[]{}(),.:;!_'\" \t\n\u00A0")
 
     fun canStartMath(c: Char): Boolean =
         isCoreMathChar(c) || (c in "([{|")
@@ -50,6 +53,9 @@ object PersianUtils {
     fun canEndMath(c: Char): Boolean =
         (c in 'a'..'z') || (c in 'A'..'Z') || (c in '0'..'9') ||
         (c in MATH_CLOSING_DELIMITERS) || (c in "²³⁴ⁿ⁻⁺⁰¹₂₃₄°π∞Δαβθλμσω")
+
+    private fun isOpener(c: Char): Boolean = c in OPENING_BRACKETS
+    private fun isCloser(c: Char): Boolean = c in CLOSING_BRACKETS
 
     fun formatMathText(input: String?): String {
         if (input.isNullOrEmpty()) return input ?: ""
@@ -63,15 +69,33 @@ object PersianUtils {
                 var j = i
                 var lastValidEnd = -1
                 var hasCoreMath = false
+                var depth = 0
                 while (j < n) {
                     val cur = text[j]
                     if (isPersian(cur) || !isMathAllowedChar(cur)) break
+                    if (isCloser(cur)) {
+                        if (depth == 0) {
+                            // Unmatched closing bracket: stays outside the candidate run
+                            break
+                        }
+                        depth--
+                    } else if (isOpener(cur)) {
+                        depth++
+                    }
                     if (isCoreMathChar(cur)) hasCoreMath = true
-                    if (canEndMath(cur) && hasCoreMath) lastValidEnd = j
+                    if (depth == 0 && canEndMath(cur) && hasCoreMath) {
+                        lastValidEnd = j
+                    }
                     j++
                 }
                 if (lastValidEnd >= i && hasCoreMath) {
-                    sb.append(LRI).append(text.substring(i, lastValidEnd + 1)).append(PDI)
+                    val rawRun = text.substring(i, lastValidEnd + 1)
+                    val processedRun = if (rawRun.length <= 40) {
+                        rawRun.replace(' ', '\u00A0')
+                    } else {
+                        rawRun.replace('\u00A0', ' ')
+                    }
+                    sb.append(LRI).append(processedRun).append(PDI)
                     i = lastValidEnd + 1
                     continue
                 }

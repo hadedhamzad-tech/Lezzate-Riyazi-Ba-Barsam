@@ -98,11 +98,10 @@ fun PracticeScreen(
                 ) {
                     listOf(10, 11, 12).forEach { grade ->
                         val isSelected = uiState.selectedGrade == grade
-                        val gradeFa = PersianUtils.toPersianDigits(grade.toString())
                         FilterChip(
                             selected = isSelected,
                             onClick = { viewModel.onGradeSelected(grade) },
-                            label = { Text("پایه $gradeFa") },
+                            label = { Text("پایه $grade") },
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                                 selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -204,9 +203,8 @@ fun PracticeScreen(
                 }
 
                 // Count line near filters: "<N> سؤال در این فیلتر"
-                val countFa = PersianUtils.toPersianDigits(uiState.filterMatchingCount.toString())
                 Text(
-                    text = "$countFa سؤال در این فیلتر",
+                    text = "${uiState.filterMatchingCount} سؤال در این فیلتر",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -378,16 +376,13 @@ fun QuestionPracticeCard(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Header: Progress label ("سؤال <i> از <N>") and Topic/Difficulty
-            val currentIdxFa = PersianUtils.toPersianDigits(currentQuestionIndexInRound.toString())
-            val totalFa = PersianUtils.toPersianDigits(totalQuestionsInRound.toString())
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "سؤال $currentIdxFa از $totalFa",
+                    text = "سؤال $currentQuestionIndexInRound از $totalQuestionsInRound",
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
@@ -412,7 +407,7 @@ fun QuestionPracticeCard(
             // 4 Options
             val options = listOf(question.option1, question.option2, question.option3, question.option4)
             options.forEachIndexed { index, optionText ->
-                val optionLabel = PersianUtils.toPersianDigits((index + 1).toString())
+                val optionLabel = (index + 1).toString()
                 val isSelected = selectedOptionIndex == index
                 val isCorrect = question.correctOptionIndex == index
 
@@ -519,7 +514,7 @@ fun QuestionPracticeCard(
                                 color = if (isUserCorrect) extendedColors.success else MaterialTheme.colorScheme.error
                             )
                             if (!isUserCorrect) {
-                                val correctLabel = PersianUtils.toPersianDigits((question.correctOptionIndex + 1).toString())
+                                val correctLabel = (question.correctOptionIndex + 1).toString()
                                 Text(
                                     text = "گزینه درست: گزینه $correctLabel",
                                     style = MaterialTheme.typography.bodyMedium,
