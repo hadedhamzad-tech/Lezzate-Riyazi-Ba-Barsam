@@ -99,7 +99,26 @@ fun AppNavigation(
                     .padding(innerPadding)
             ) {
                 composable(BottomTab.Dashboard.route) {
-                    DashboardScreen()
+                    DashboardScreen(
+                        onNavigateToPractice = {
+                            navController.navigate(BottomTab.Practice.route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        },
+                        onNavigateToExam = {
+                            navController.navigate(BottomTab.Exam.route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    )
                 }
                 composable(BottomTab.Practice.route) {
                     val practiceViewModel: PracticeViewModel = viewModel(
