@@ -2,6 +2,8 @@ package com.example.ui.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,16 +16,21 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -33,6 +40,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
@@ -48,6 +56,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.ui.components.MathText
+import com.example.ui.theme.LocalExtendedColors
 
 @Composable
 fun ExamScreen(
@@ -60,6 +69,11 @@ fun ExamScreen(
         viewModel.requestAbandonDialog(true)
     }
 
+    BackHandler(enabled = uiState.stage == ExamScreenStage.REVIEW) {
+        viewModel.closeReview()
+    }
+
+    // Finish Dialog (opened by both finish buttons)
     if (uiState.isFinishDialogVisible) {
         AlertDialog(
             onDismissRequest = { viewModel.requestFinishDialog(false) },
@@ -72,9 +86,9 @@ fun ExamScreen(
             },
             text = {
                 val dialogMsg = if (uiState.unansweredCount > 0) {
-                    "${uiState.unansweredCount} سؤال بی‌پاسخ دارید. آزمون را تمام می‌کنید؟"
+                    "پاسخ‌های شما ثبت و نمره‌گذاری می‌شود. ${uiState.unansweredCount} سؤال بی‌پاسخ دارید. آزمون را تمام می‌کنید؟"
                 } else {
-                    "همه‌ی سؤال‌ها پاسخ داده شده‌اند. آزمون را تمام می‌کنید؟"
+                    "پاسخ‌های شما ثبت و نمره‌گذاری می‌شود. همه‌ی سؤال‌ها پاسخ داده شده‌اند. آزمون را تمام می‌کنید؟"
                 }
                 Text(
                     text = dialogMsg,
@@ -91,7 +105,7 @@ fun ExamScreen(
                     ),
                     modifier = Modifier.testTag("exam_finish_confirm_button")
                 ) {
-                    Text("بله، تمام")
+                    Text("ثبت و پایان آزمون")
                 }
             },
             dismissButton = {
@@ -105,19 +119,20 @@ fun ExamScreen(
         )
     }
 
+    // Abandon Dialog (opened by system back during exam)
     if (uiState.isAbandonDialogVisible) {
         AlertDialog(
             onDismissRequest = { viewModel.requestAbandonDialog(false) },
             title = {
                 Text(
-                    text = "رها کردن آزمون",
+                    text = "خروج از آزمون",
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.error
                 )
             },
             text = {
                 Text(
-                    text = "آزمون را رها می‌کنید؟",
+                    text = "اگر خارج شوید، آزمون و پاسخ‌های شما حذف می‌شوند و نمره‌ای ثبت نمی‌شود. خارج می‌شوید؟",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -131,7 +146,7 @@ fun ExamScreen(
                     ),
                     modifier = Modifier.testTag("exam_abandon_confirm_button")
                 ) {
-                    Text("رها کردن")
+                    Text("خروج و حذف آزمون")
                 }
             },
             dismissButton = {
@@ -139,7 +154,7 @@ fun ExamScreen(
                     onClick = { viewModel.requestAbandonDialog(false) },
                     modifier = Modifier.testTag("exam_abandon_dismiss_button")
                 ) {
-                    Text("ادامه")
+                    Text("ادامهٔ آزمون")
                 }
             }
         )
@@ -173,7 +188,15 @@ fun ExamScreen(
             ExamScreenStage.RESULT -> {
                 ExamResultContent(
                     uiState = uiState,
+                    onOpenReview = viewModel::openReview,
                     onNewExam = viewModel::startNewExam
+                )
+            }
+            ExamScreenStage.REVIEW -> {
+                ExamReviewContent(
+                    uiState = uiState,
+                    onFilterSelected = viewModel::setReviewFilter,
+                    onCloseReview = viewModel::closeReview
                 )
             }
         }
@@ -402,6 +425,8 @@ private fun ExamInProgressContent(
 ) {
     val question = uiState.currentQuestion
     val scrollState = rememberScrollState()
+    val isLast = uiState.currentQuestionIndex >= uiState.totalQuestionsInExam - 1
+    val nextLabel = ExamReview.getNextButtonLabel(uiState.currentQuestionIndex, uiState.totalQuestionsInExam)
 
     Column(
         modifier = Modifier
@@ -409,7 +434,7 @@ private fun ExamInProgressContent(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // 1. Top Header: Question counter, Countdown timer, and Finish button
+        // 1. Top Header: Question counter, Countdown timer, and Top Finish button
         Card(
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
@@ -568,7 +593,7 @@ private fun ExamInProgressContent(
                             Card(
                                 onClick = { onOptionSelected(index) },
                                 colors = CardDefaults.cardColors(containerColor = optContainerColor),
-                                border = BorderStroke(1.5.dp, optBorderColor),
+                                border = BorderStroke(if (isSelected) 2.dp else 1.dp, optBorderColor),
                                 shape = RoundedCornerShape(12.dp),
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -578,26 +603,48 @@ private fun ExamInProgressContent(
                                     modifier = Modifier.padding(14.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
+                                    // Neutral radio-style indicator (no checkmark, no green color)
+                                    Box(
+                                        modifier = Modifier
+                                            .size(20.dp)
+                                            .background(
+                                                color = MaterialTheme.colorScheme.surface,
+                                                shape = CircleShape
+                                            )
+                                            .border(
+                                                width = 2.dp,
+                                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                                                shape = CircleShape
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        if (isSelected) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(10.dp)
+                                                    .background(
+                                                        color = MaterialTheme.colorScheme.primary,
+                                                        shape = CircleShape
+                                                    )
+                                            )
+                                        }
+                                    }
+
+                                    Spacer(modifier = Modifier.width(10.dp))
+
                                     Text(
                                         text = "(${index + 1})",
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold,
                                         color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                                     )
-                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Spacer(modifier = Modifier.width(10.dp))
                                     MathText(
                                         text = optionText,
                                         style = MaterialTheme.typography.bodyLarge,
                                         color = MaterialTheme.colorScheme.onSurface,
                                         modifier = Modifier.weight(1f)
                                     )
-                                    if (isSelected) {
-                                        Icon(
-                                            imageVector = Icons.Default.CheckCircle,
-                                            contentDescription = "انتخاب‌شده",
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
-                                    }
                                 }
                             }
                         }
@@ -606,7 +653,7 @@ private fun ExamInProgressContent(
             }
         }
 
-        // 4. Bottom navigation: Previous & Next buttons
+        // 4. Bottom navigation: Previous & Next / Finish buttons
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -631,8 +678,7 @@ private fun ExamInProgressContent(
             Spacer(modifier = Modifier.width(12.dp))
 
             Button(
-                onClick = onNext,
-                enabled = uiState.currentQuestionIndex < uiState.totalQuestionsInExam - 1,
+                onClick = if (isLast) onRequestFinish else onNext,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
@@ -642,10 +688,10 @@ private fun ExamInProgressContent(
                     .height(48.dp)
                     .testTag("exam_next_button")
             ) {
-                Text("بعدی")
+                Text(nextLabel)
                 Spacer(modifier = Modifier.width(8.dp))
                 Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                    imageVector = if (isLast) Icons.Default.Check else Icons.AutoMirrored.Filled.ArrowForward,
                     contentDescription = null
                 )
             }
@@ -656,6 +702,7 @@ private fun ExamInProgressContent(
 @Composable
 private fun ExamResultContent(
     uiState: ExamUiState,
+    onOpenReview: () -> Unit,
     onNewExam: () -> Unit
 ) {
     val score = uiState.scoreResult
@@ -802,6 +849,32 @@ private fun ExamResultContent(
             }
         }
 
+        // Button: Review Answers (only when exam has at least 1 question)
+        if (uiState.totalQuestionsInExam > 0) {
+            Button(
+                onClick = onOpenReview,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                    contentColor = MaterialTheme.colorScheme.onSecondary
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .testTag("exam_open_review_button")
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Visibility,
+                    contentDescription = null
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "مرور پاسخ‌ها",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
         Button(
             onClick = onNewExam,
             colors = ButtonDefaults.buttonColors(
@@ -823,6 +896,306 @@ private fun ExamResultContent(
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
+        }
+    }
+}
+
+@Composable
+private fun ExamReviewContent(
+    uiState: ExamUiState,
+    onFilterSelected: (ReviewFilter) -> Unit,
+    onCloseReview: () -> Unit
+) {
+    val extendedColors = LocalExtendedColors.current
+    val counts = uiState.reviewFilterCounts
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        // Top Bar: Back button and Title
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = onCloseReview,
+                modifier = Modifier.testTag("exam_review_back_button")
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "بازگشت به نتیجه آزمون",
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "مرور آزمون",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.testTag("exam_review_title")
+            )
+        }
+
+        // Filter chips with counts: همه (N) / غلط (N) / بدون پاسخ (N) / درست (N)
+        val filterOptions = listOf(
+            ReviewFilter.ALL to "همه (${counts.all})",
+            ReviewFilter.WRONG to "غلط (${counts.wrong})",
+            ReviewFilter.BLANK to "بدون پاسخ (${counts.blank})",
+            ReviewFilter.CORRECT to "درست (${counts.correct})"
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            filterOptions.forEach { (filter, label) ->
+                val isSelected = uiState.activeReviewFilter == filter
+                FilterChip(
+                    selected = isSelected,
+                    onClick = { onFilterSelected(filter) },
+                    label = { Text(label) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    ),
+                    modifier = Modifier.testTag("review_filter_chip_${filter.name}")
+                )
+            }
+        }
+
+        // List of Review Cards
+        if (uiState.filteredReviewItems.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "موردی برای نمایش نیست",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.testTag("review_empty_text")
+                )
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .testTag("review_items_list"),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                items(
+                    items = uiState.filteredReviewItems,
+                    key = { it.question.id }
+                ) { item ->
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface
+                        ),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("review_card_${item.number}")
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            // Header: Original question number, topic • difficulty, and status badge
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Text(
+                                        text = "سؤال ${item.number}",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                    Text(
+                                        text = "${item.question.topic} • ${item.question.difficulty}",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.secondary
+                                    )
+                                }
+
+                                // Status Badge
+                                val (badgeBg, badgeText, badgeColor) = when (item.status) {
+                                    QuestionReviewStatus.CORRECT -> Triple(
+                                        extendedColors.successContainer,
+                                        "درست",
+                                        extendedColors.onSuccessContainer
+                                    )
+                                    QuestionReviewStatus.WRONG -> Triple(
+                                        MaterialTheme.colorScheme.errorContainer,
+                                        "غلط",
+                                        MaterialTheme.colorScheme.onErrorContainer
+                                    )
+                                    QuestionReviewStatus.BLANK -> Triple(
+                                        MaterialTheme.colorScheme.surfaceVariant,
+                                        "بدون پاسخ",
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = badgeBg,
+                                    modifier = Modifier.testTag("review_badge_${item.number}")
+                                ) {
+                                    Text(
+                                        text = badgeText,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = badgeColor,
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                    )
+                                }
+                            }
+
+                            // Question Text with MathText
+                            MathText(
+                                text = item.question.questionText,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+
+                            // 4 Options
+                            val options = listOf(
+                                item.question.option1,
+                                item.question.option2,
+                                item.question.option3,
+                                item.question.option4
+                            )
+                            options.forEachIndexed { optIndex, optText ->
+                                val isCorrect = optIndex == item.question.correctOptionIndex
+                                val isUserWrong = optIndex == item.selectedOptionIndex && item.status == QuestionReviewStatus.WRONG
+
+                                val optBg = when {
+                                    isCorrect -> extendedColors.successContainer
+                                    isUserWrong -> MaterialTheme.colorScheme.errorContainer
+                                    else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
+                                }
+
+                                val optBorder = when {
+                                    isCorrect -> extendedColors.success
+                                    isUserWrong -> MaterialTheme.colorScheme.error
+                                    else -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                                }
+
+                                val optTextColor = when {
+                                    isCorrect -> extendedColors.onSuccessContainer
+                                    isUserWrong -> MaterialTheme.colorScheme.onErrorContainer
+                                    else -> MaterialTheme.colorScheme.onSurface
+                                }
+
+                                Card(
+                                    colors = CardDefaults.cardColors(containerColor = optBg),
+                                    border = BorderStroke(if (isCorrect || isUserWrong) 1.5.dp else 1.dp, optBorder),
+                                    shape = RoundedCornerShape(10.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(12.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = "(${optIndex + 1})",
+                                            style = MaterialTheme.typography.titleSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            color = optTextColor
+                                        )
+                                        Spacer(modifier = Modifier.width(10.dp))
+                                        MathText(
+                                            text = optText,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = optTextColor,
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        if (isCorrect) {
+                                            Icon(
+                                                imageVector = Icons.Default.Check,
+                                                contentDescription = "گزینه درست",
+                                                tint = extendedColors.success
+                                            )
+                                        } else if (isUserWrong) {
+                                            Icon(
+                                                imageVector = Icons.Default.Close,
+                                                contentDescription = "پاسخ نادرست شما",
+                                                tint = MaterialTheme.colorScheme.error
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Summary of answers
+                            val userChoiceText = if (item.selectedOptionIndex != null) {
+                                "گزینه ${item.selectedOptionIndex + 1}"
+                            } else {
+                                "بدون پاسخ"
+                            }
+                            val correctChoiceText = "گزینه ${item.question.correctOptionIndex + 1}"
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = "پاسخ شما: $userChoiceText",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Medium,
+                                    color = if (item.status == QuestionReviewStatus.CORRECT) extendedColors.success else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = "پاسخ درست: $correctChoiceText",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = extendedColors.success
+                                )
+                            }
+
+                            // Explanation Card
+                            Card(
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                                ),
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(12.dp),
+                                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Text(
+                                        text = "توضیح راه‌حل",
+                                        style = MaterialTheme.typography.labelLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                    MathText(
+                                        text = item.question.explanation,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

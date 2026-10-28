@@ -21,7 +21,8 @@ import kotlinx.coroutines.launch
 enum class ExamScreenStage {
     SETUP,
     IN_PROGRESS,
-    RESULT
+    RESULT,
+    REVIEW
 }
 
 data class ExamUiState(
@@ -42,7 +43,11 @@ data class ExamUiState(
     val isAbandonDialogVisible: Boolean = false,
     val scoreResult: ExamScoreResult? = null,
     val elapsedSeconds: Long = 0L,
-    val finishReason: ExamFinishReason? = null
+    val finishReason: ExamFinishReason? = null,
+    val reviewItems: List<ExamReviewItem> = emptyList(),
+    val filteredReviewItems: List<ExamReviewItem> = emptyList(),
+    val activeReviewFilter: ReviewFilter = ReviewFilter.ALL,
+    val reviewFilterCounts: ReviewFilterCounts = ReviewFilterCounts(0, 0, 0, 0)
 )
 
 class ExamViewModel(
@@ -57,6 +62,7 @@ class ExamViewModel(
 
     private val _isFinishDialogVisible = MutableStateFlow(false)
     private val _isAbandonDialogVisible = MutableStateFlow(false)
+    private val _activeReviewFilter = MutableStateFlow(ReviewFilter.ALL)
 
     var currentSession: ExamSession? = null
         private set
@@ -86,7 +92,8 @@ class ExamViewModel(
         availableQuestions,
         _sessionVersion,
         _isFinishDialogVisible,
-        _isAbandonDialogVisible
+        _isAbandonDialogVisible,
+        _activeReviewFilter
     ) { args: Array<Any?> ->
         val stage = args[0] as ExamScreenStage
         val grade = args[1] as Int
@@ -96,11 +103,21 @@ class ExamViewModel(
         val pool = args[4] as List<QuestionEntity>
         val isFinishDialog = args[6] as Boolean
         val isAbandonDialog = args[7] as Boolean
+        val activeFilter = args[8] as ReviewFilter
 
         val session = currentSession
         if (session != null && stage != ExamScreenStage.SETUP) {
             val remaining = session.remainingSeconds()
             val answeredList = (0 until session.totalCount).map { session.isAnswered(it) }
+
+            val allReviewItems = if (session.isFinished) {
+                ExamReview.buildReviewItems(session.questions, session.selectedOptions)
+            } else {
+                emptyList()
+            }
+            val filterCounts = ExamReview.computeFilterCounts(allReviewItems)
+            val filteredItems = ExamReview.filterReviewItems(allReviewItems, activeFilter)
+
             ExamUiState(
                 stage = stage,
                 selectedGrade = grade,
@@ -119,7 +136,11 @@ class ExamViewModel(
                 isAbandonDialogVisible = isAbandonDialog,
                 scoreResult = if (session.isFinished) session.computeScore() else null,
                 elapsedSeconds = session.elapsedSeconds(),
-                finishReason = session.finishReason
+                finishReason = session.finishReason,
+                reviewItems = allReviewItems,
+                filteredReviewItems = filteredItems,
+                activeReviewFilter = activeFilter,
+                reviewFilterCounts = filterCounts
             )
         } else {
             ExamUiState(
@@ -169,6 +190,7 @@ class ExamViewModel(
         _stage.value = ExamScreenStage.IN_PROGRESS
         _isFinishDialogVisible.value = false
         _isAbandonDialogVisible.value = false
+        _activeReviewFilter.value = ReviewFilter.ALL
         _sessionVersion.value++
 
         startTimer()
@@ -239,6 +261,7 @@ class ExamViewModel(
         timerJob?.cancel()
         currentSession = null
         _stage.value = ExamScreenStage.SETUP
+        _activeReviewFilter.value = ReviewFilter.ALL
         _sessionVersion.value++
     }
 
@@ -246,7 +269,24 @@ class ExamViewModel(
         timerJob?.cancel()
         currentSession = null
         _stage.value = ExamScreenStage.SETUP
+        _activeReviewFilter.value = ReviewFilter.ALL
         _sessionVersion.value++
+    }
+
+    fun openReview() {
+        val session = currentSession ?: return
+        if (!session.isFinished) return
+        _stage.value = ExamScreenStage.REVIEW
+        _sessionVersion.value++
+    }
+
+    fun closeReview() {
+        _stage.value = ExamScreenStage.RESULT
+        _sessionVersion.value++
+    }
+
+    fun setReviewFilter(filter: ReviewFilter) {
+        _activeReviewFilter.value = filter
     }
 
     override fun onCleared() {
