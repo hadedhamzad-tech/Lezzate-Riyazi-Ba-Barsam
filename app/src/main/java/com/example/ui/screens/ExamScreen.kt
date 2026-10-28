@@ -61,8 +61,15 @@ import com.example.ui.theme.LocalExtendedColors
 @Composable
 fun ExamScreen(
     viewModel: ExamViewModel,
+    soundPlayer: com.example.util.sound.AppSoundPlayer? = null,
     modifier: Modifier = Modifier
 ) {
+    androidx.compose.runtime.LaunchedEffect(viewModel, soundPlayer) {
+        viewModel.soundEvents.collect { event ->
+            soundPlayer?.play(event)
+        }
+    }
+
     val uiState by viewModel.uiState.collectAsState()
 
     BackHandler(enabled = uiState.stage == ExamScreenStage.IN_PROGRESS) {

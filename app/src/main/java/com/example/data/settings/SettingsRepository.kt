@@ -29,6 +29,9 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         val KEY_SOUND_ENABLED = booleanPreferencesKey("sound_enabled")
     }
 
+    @Volatile
+    var isSoundEnabled: Boolean = true
+
     val userSettingsFlow: Flow<UserSettings> = dataStore.data
         .catch { exception ->
             if (exception is IOException) {
@@ -45,6 +48,7 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
                 ThemeMode.SYSTEM
             }
             val soundEnabled = preferences[KEY_SOUND_ENABLED] ?: true
+            isSoundEnabled = soundEnabled
             UserSettings(
                 themeMode = themeMode,
                 soundEnabled = soundEnabled
@@ -58,6 +62,7 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
     }
 
     suspend fun setSoundEnabled(enabled: Boolean) {
+        isSoundEnabled = enabled
         dataStore.edit { preferences ->
             preferences[KEY_SOUND_ENABLED] = enabled
         }

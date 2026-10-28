@@ -58,8 +58,15 @@ import com.example.util.PersianUtils
 @Composable
 fun PracticeScreen(
     viewModel: PracticeViewModel,
+    soundPlayer: com.example.util.sound.AppSoundPlayer? = null,
     modifier: Modifier = Modifier
 ) {
+    androidx.compose.runtime.LaunchedEffect(viewModel, soundPlayer) {
+        viewModel.soundEvents.collect { event ->
+            soundPlayer?.play(event)
+        }
+    }
+
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scrollState = rememberScrollState()
 

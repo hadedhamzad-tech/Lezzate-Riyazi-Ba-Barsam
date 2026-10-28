@@ -40,6 +40,7 @@ fun AppNavigation(
     userSettings: UserSettings,
     settingsRepository: SettingsRepository,
     questionDao: QuestionDao,
+    soundPlayer: com.example.util.sound.AppSoundPlayer? = null,
     modifier: Modifier = Modifier
 ) {
     val navController = rememberNavController()
@@ -124,13 +125,13 @@ fun AppNavigation(
                     val practiceViewModel: PracticeViewModel = viewModel(
                         factory = PracticeViewModelFactory(questionDao)
                     )
-                    PracticeScreen(viewModel = practiceViewModel)
+                    PracticeScreen(viewModel = practiceViewModel, soundPlayer = soundPlayer)
                 }
                 composable(BottomTab.Exam.route) {
                     val examViewModel: ExamViewModel = viewModel(
                         factory = ExamViewModelFactory(questionDao)
                     )
-                    ExamScreen(viewModel = examViewModel)
+                    ExamScreen(viewModel = examViewModel, soundPlayer = soundPlayer)
                 }
                 composable(BottomTab.Mistakes.route) {
                     MistakesScreen()

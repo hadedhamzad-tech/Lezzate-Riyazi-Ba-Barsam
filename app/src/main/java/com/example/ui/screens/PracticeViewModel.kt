@@ -5,10 +5,14 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.data.local.QuestionDao
 import com.example.data.local.QuestionEntity
+import com.example.util.sound.SoundEvent
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
@@ -41,6 +45,9 @@ class PracticeViewModel(
     private val _selectedOptionIndex = MutableStateFlow<Int?>(null)
     private val _isAnswerLocked = MutableStateFlow(false)
     private val _roundStateVersion = MutableStateFlow(0)
+
+    private val _soundEvents = MutableSharedFlow<SoundEvent>(extraBufferCapacity = 1)
+    val soundEvents: SharedFlow<SoundEvent> = _soundEvents.asSharedFlow()
 
     val totalCountFlow = questionDao.getAllQuestions().stateIn(
         viewModelScope,
@@ -137,6 +144,15 @@ class PracticeViewModel(
         if (!_isAnswerLocked.value) {
             _selectedOptionIndex.value = index
             _isAnswerLocked.value = true
+            val currentQ = roundSession.currentQuestion
+            if (currentQ != null) {
+                val event = if (index == currentQ.correctOptionIndex) {
+                    SoundEvent.ANSWER_CORRECT
+                } else {
+                    SoundEvent.ANSWER_WRONG
+                }
+                _soundEvents.tryEmit(event)
+            }
         }
     }
 

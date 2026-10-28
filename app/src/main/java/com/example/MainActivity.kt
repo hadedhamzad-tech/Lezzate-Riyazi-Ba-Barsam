@@ -15,10 +15,13 @@ import com.example.data.settings.SettingsRepository
 import com.example.data.settings.UserSettings
 import com.example.ui.navigation.AppNavigation
 import com.example.ui.theme.AppTheme
+import com.example.util.sound.AppSoundPlayer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+    private var soundPlayer: AppSoundPlayer? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -26,6 +29,8 @@ class MainActivity : ComponentActivity() {
         val database = AppDatabase.getInstance(applicationContext)
         val questionDao = database.questionDao()
         val settingsRepository = SettingsRepository(applicationContext)
+        val player = AppSoundPlayer(applicationContext, settingsRepository)
+        soundPlayer = player
 
         // Run question bank importer in background without blocking UI
         lifecycleScope.launch(Dispatchers.IO) {
@@ -42,9 +47,16 @@ class MainActivity : ComponentActivity() {
                     userSettings = userSettings,
                     settingsRepository = settingsRepository,
                     questionDao = questionDao,
+                    soundPlayer = player,
                     modifier = Modifier.fillMaxSize()
                 )
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        soundPlayer?.release()
+        soundPlayer = null
     }
 }

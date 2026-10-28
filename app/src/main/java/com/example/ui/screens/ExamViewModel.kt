@@ -6,12 +6,16 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.data.local.QuestionDao
 import com.example.data.local.QuestionEntity
+import com.example.util.sound.SoundEvent
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
@@ -69,6 +73,9 @@ class ExamViewModel(
 
     private val _sessionVersion = MutableStateFlow(0)
     private var timerJob: Job? = null
+
+    private val _soundEvents = MutableSharedFlow<SoundEvent>(extraBufferCapacity = 1)
+    val soundEvents: SharedFlow<SoundEvent> = _soundEvents.asSharedFlow()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val availableQuestions: StateFlow<List<QuestionEntity>> = combine(
@@ -206,6 +213,7 @@ class ExamViewModel(
                     _stage.value = ExamScreenStage.RESULT
                     _isFinishDialogVisible.value = false
                     _isAbandonDialogVisible.value = false
+                    _soundEvents.tryEmit(SoundEvent.EXAM_TIMEOUT)
                     _sessionVersion.value++
                     break
                 }
@@ -218,6 +226,7 @@ class ExamViewModel(
         val session = currentSession ?: return
         if (session.isFinished) return
         session.selectOption(optionIndex)
+        _soundEvents.tryEmit(SoundEvent.OPTION_TICK)
         _sessionVersion.value++
     }
 
@@ -250,8 +259,10 @@ class ExamViewModel(
     fun confirmFinishExam() {
         _isFinishDialogVisible.value = false
         val session = currentSession ?: return
+        if (session.isFinished) return
         session.finish(ExamFinishReason.MANUAL)
         timerJob?.cancel()
+        _soundEvents.tryEmit(SoundEvent.EXAM_FINISHED)
         _stage.value = ExamScreenStage.RESULT
         _sessionVersion.value++
     }
