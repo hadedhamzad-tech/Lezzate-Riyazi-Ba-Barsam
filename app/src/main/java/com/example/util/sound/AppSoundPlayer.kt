@@ -5,14 +5,19 @@ import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
+import android.util.Log
 import com.example.data.settings.SettingsRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
+
+private const val TAG = "AppSound"
 
 class AppSoundPlayer(
     private val context: Context,
@@ -24,7 +29,7 @@ class AppSoundPlayer(
     private val activeTracks = Collections.synchronizedSet(mutableSetOf<AudioTrack>())
 
     private val audioAttributes = AudioAttributes.Builder()
-        .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+        .setUsage(AudioAttributes.USAGE_GAME)
         .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
         .build()
 
@@ -49,49 +54,37 @@ class AppSoundPlayer(
 
     fun play(event: SoundEvent) {
         coroutineScope.launch {
+            var track: AudioTrack? = null
             try {
                 val ringerModeNormal = audioManager?.ringerMode == AudioManager.RINGER_MODE_NORMAL
-                val isSoundEnabled = settingsRepository.isSoundEnabled
-                if (!SoundSynth.shouldPlay(soundEnabled = isSoundEnabled, ringerModeNormal = ringerModeNormal)) {
-                    return@launch
-                }
-
+                if (!SoundSynth.shouldPlay(settingsRepository.isSoundEnabled, ringerModeNormal)) return@launch
                 val pcm = pcmCache.computeIfAbsent(event) { SoundSynth.generatePcm(it) }
                 if (pcm.isEmpty()) return@launch
 
-                val sizeInBytes = pcm.size * 2
-                val track = AudioTrack(
-                    audioAttributes,
-                    audioFormat,
-                    sizeInBytes,
-                    AudioTrack.MODE_STATIC,
-                    AudioManager.AUDIO_SESSION_ID_GENERATE
-                )
-
-                if (track.state != AudioTrack.STATE_INITIALIZED) {
-                    track.release()
-                    return@launch
+                val t = AudioTrack(audioAttributes, audioFormat, pcm.size * 2,
+                    AudioTrack.MODE_STATIC, AudioManager.AUDIO_SESSION_ID_GENERATE)
+                track = t
+                // MODE_STATIC: state is STATE_NO_STATIC_DATA until write() is called.
+                if (t.state == AudioTrack.STATE_UNINITIALIZED) {
+                    Log.w(TAG, "AudioTrack uninitialized for $event"); return@launch
                 }
-
-                track.write(pcm, 0, pcm.size)
-                activeTracks.add(track)
-
-                track.setNotificationMarkerPosition(pcm.size)
-                track.setPlaybackPositionUpdateListener(object : AudioTrack.OnPlaybackPositionUpdateListener {
-                    override fun onMarkerReached(t: AudioTrack?) {
-                        try {
-                            t?.stop()
-                            t?.release()
-                        } catch (_: Throwable) {}
-                        activeTracks.remove(t)
-                    }
-
-                    override fun onPeriodicNotification(t: AudioTrack?) {}
-                })
-
-                track.play()
-            } catch (_: Throwable) {
-                // Sound failure must never crash the app or affect the UI
+                val written = t.write(pcm, 0, pcm.size)
+                if (written != pcm.size || t.state != AudioTrack.STATE_INITIALIZED) {
+                    Log.w(TAG, "write failed for $event: written=$written state=${t.state}"); return@launch
+                }
+                activeTracks.add(t)
+                t.play()
+                delay(SoundSynth.durationMs(pcm.size) + 150L)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Throwable) {
+                Log.w(TAG, "play failed for $event", e)   // never crash the UI
+            } finally {
+                track?.let {
+                    activeTracks.remove(it)
+                    try { it.stop() } catch (_: Throwable) {}
+                    try { it.release() } catch (_: Throwable) {}
+                }
             }
         }
     }

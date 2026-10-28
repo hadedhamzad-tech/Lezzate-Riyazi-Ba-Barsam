@@ -135,4 +135,13 @@ class SoundSynthTest {
         assertFalse("Non-normal ringer should be false", SoundSynth.shouldPlay(soundEnabled = true, ringerModeNormal = false))
         assertFalse("Both false should be false", SoundSynth.shouldPlay(soundEnabled = false, ringerModeNormal = false))
     }
+
+    @Test
+    fun testDurationMs() {
+        assertEquals(1000L, SoundSynth.durationMs(SoundSynth.SAMPLE_RATE))
+        val answerCorrectPcm = SoundSynth.generatePcm(SoundEvent.ANSWER_CORRECT)
+        val duration = SoundSynth.durationMs(answerCorrectPcm.size)
+        // Expected duration ~270 ms
+        assertTrue("ANSWER_CORRECT duration should be around 270 ms", duration in 260L..280L)
+    }
 }

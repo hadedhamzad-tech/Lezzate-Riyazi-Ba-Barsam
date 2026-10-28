@@ -45,6 +45,8 @@ object SoundSynth {
         }
     }
 
+    fun durationMs(sampleCount: Int): Long = sampleCount * 1000L / SAMPLE_RATE
+
     fun noteSampleCount(durationMs: Int): Int {
         return ((SAMPLE_RATE * durationMs + 500) / 1000).coerceAtLeast(1)
     }
