@@ -26,6 +26,8 @@ import com.example.ui.components.AppTopBar
 import com.example.ui.screens.AnalyticsScreen
 import com.example.ui.screens.DashboardScreen
 import com.example.ui.screens.ExamScreen
+import com.example.ui.screens.ExamViewModel
+import com.example.ui.screens.ExamViewModelFactory
 import com.example.ui.screens.MistakesScreen
 import com.example.ui.screens.PracticeScreen
 import com.example.ui.screens.PracticeViewModel
@@ -106,7 +108,10 @@ fun AppNavigation(
                     PracticeScreen(viewModel = practiceViewModel)
                 }
                 composable(BottomTab.Exam.route) {
-                    ExamScreen()
+                    val examViewModel: ExamViewModel = viewModel(
+                        factory = ExamViewModelFactory(questionDao)
+                    )
+                    ExamScreen(viewModel = examViewModel)
                 }
                 composable(BottomTab.Mistakes.route) {
                     MistakesScreen()
