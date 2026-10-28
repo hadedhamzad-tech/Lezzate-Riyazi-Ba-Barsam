@@ -82,7 +82,7 @@ class DashboardTest {
 
     @Test
     fun testWeekdayMessagesAreNonBlankAndAccurate() {
-        val weekdays = listOf("شنبه", "یکشنبه", "دوشنبه", "سهشنبه", "چهارشنبه", "پنجشنبه", "جمعه")
+        val weekdays = JalaliCalendarUtils.WEEKDAY_NAMES
         for (w in weekdays) {
             val msg = DashboardTexts.getWeekdayMessage(w)
             assertNotNull(msg)
@@ -92,11 +92,11 @@ class DashboardTest {
 
         // Verify exact prompt strings
         assertEquals("شروع هفته است؛ یک سؤال سخت را امروز شکست بده! 💪", DashboardTexts.getWeekdayMessage("شنبه"))
-        assertEquals("پشتکار از استعداد مهمتر است؛ امروز هم یک قدم جلوتر برو. 🚶", DashboardTexts.getWeekdayMessage("یکشنبه"))
-        assertEquals("اشتباهها معلمهای خوبیاند؛ امروز از یکیشان یاد بگیر. 📘", DashboardTexts.getWeekdayMessage("دوشنبه"))
-        assertEquals("وسط هفتهای؛ نفس بگیر و با تمرکز ادامه بده. 🎯", DashboardTexts.getWeekdayMessage("سهشنبه"))
+        assertEquals("پشتکار از استعداد مهم\u200Cتر است؛ امروز هم یک قدم جلوتر برو. 🚶", DashboardTexts.getWeekdayMessage("یکشنبه"))
+        assertEquals("اشتباه\u200Cها معلم\u200Cهای خوبی\u200Cاند؛ امروز از یکی\u200Cشان یاد بگیر. 📘", DashboardTexts.getWeekdayMessage("دوشنبه"))
+        assertEquals("وسط هفته\u200Cای؛ نفس بگیر و با تمرکز ادامه بده. 🎯", DashboardTexts.getWeekdayMessage(JalaliCalendarUtils.WEEKDAY_TUESDAY))
         assertEquals("یک آزمون کوتاه امتحان کن و خودت را بسنج. 📝", DashboardTexts.getWeekdayMessage("چهارشنبه"))
-        assertEquals("مرور کن؛ چیزی که دوباره دیده شود، ماندگار میشود. 🔁", DashboardTexts.getWeekdayMessage("پنجشنبه"))
+        assertEquals("مرور کن؛ چیزی که دوباره دیده شود، ماندگار می\u200Cشود. 🔁", DashboardTexts.getWeekdayMessage("پنجشنبه"))
         assertEquals("امروز استراحت هم بخشی از پیشرفت است؛ کمی تفریح کن. 🌿", DashboardTexts.getWeekdayMessage("جمعه"))
     }
 

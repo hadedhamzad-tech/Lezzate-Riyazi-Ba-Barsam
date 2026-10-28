@@ -13,8 +13,10 @@ object JalaliCalendarUtils {
         "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"
     )
 
+    const val WEEKDAY_TUESDAY = "سه\u200Cشنبه"
+
     val WEEKDAY_NAMES = listOf(
-        "شنبه", "یکشنبه", "دوشنبه", "سهشنبه", "چهارشنبه", "پنجشنبه", "جمعه"
+        "شنبه", "یکشنبه", "دوشنبه", WEEKDAY_TUESDAY, "چهارشنبه", "پنجشنبه", "جمعه"
     )
 
     private val G_DAYS_IN_MONTH = intArrayOf(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
@@ -70,7 +72,7 @@ object JalaliCalendarUtils {
             java.util.Calendar.SATURDAY -> "شنبه"
             java.util.Calendar.SUNDAY -> "یکشنبه"
             java.util.Calendar.MONDAY -> "دوشنبه"
-            java.util.Calendar.TUESDAY -> "سهشنبه"
+            java.util.Calendar.TUESDAY -> WEEKDAY_TUESDAY
             java.util.Calendar.WEDNESDAY -> "چهارشنبه"
             java.util.Calendar.THURSDAY -> "پنجشنبه"
             java.util.Calendar.FRIDAY -> "جمعه"

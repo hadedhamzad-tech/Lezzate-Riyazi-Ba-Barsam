@@ -738,7 +738,7 @@ private fun ExamResultContent(
                 ) {
                     // Percentage display
                     Text(
-                        text = score.formattedPercentage,
+                        text = ExamResultFormatter.formatDisplayPercent(score.formattedPercentage),
                         style = MaterialTheme.typography.displayMedium,
                         fontWeight = FontWeight.Bold,
                         color = if (score.percentage >= 50.0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
@@ -747,7 +747,7 @@ private fun ExamResultContent(
 
                     // Raw score
                     Text(
-                        text = "نمره: ${score.rawScore} از ${score.maxScore}",
+                        text = ExamResultFormatter.formatRawScoreText(score.rawScore, score.maxScore),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface,
