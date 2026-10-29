@@ -8,6 +8,9 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.example.util.JalaliCalendarUtils
+import com.example.util.JalaliDate
+import com.example.util.KonkurCountdown
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -17,7 +20,8 @@ val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(na
 
 data class UserSettings(
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
-    val soundEnabled: Boolean = true
+    val soundEnabled: Boolean = true,
+    val konkurDate: JalaliDate = KonkurCountdown.DEFAULT
 )
 
 class SettingsRepository(private val dataStore: DataStore<Preferences>) {
@@ -27,6 +31,7 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
     companion object {
         val KEY_THEME_MODE = stringPreferencesKey("theme_mode")
         val KEY_SOUND_ENABLED = booleanPreferencesKey("sound_enabled")
+        val KEY_KONKUR_DATE = stringPreferencesKey("konkur_date")
     }
 
     @Volatile
@@ -49,9 +54,12 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
             }
             val soundEnabled = preferences[KEY_SOUND_ENABLED] ?: true
             isSoundEnabled = soundEnabled
+            val konkurDateString = preferences[KEY_KONKUR_DATE]
+            val konkurDate = KonkurCountdown.parse(konkurDateString)
             UserSettings(
                 themeMode = themeMode,
-                soundEnabled = soundEnabled
+                soundEnabled = soundEnabled,
+                konkurDate = konkurDate
             )
         }
 
@@ -65,6 +73,14 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         isSoundEnabled = enabled
         dataStore.edit { preferences ->
             preferences[KEY_SOUND_ENABLED] = enabled
+        }
+    }
+
+    suspend fun setKonkurDate(y: Int, m: Int, d: Int) {
+        if (!JalaliCalendarUtils.isValidJalaliDate(y, m, d)) return
+        val serialized = KonkurCountdown.serialize(JalaliDate(y, m, d))
+        dataStore.edit { preferences ->
+            preferences[KEY_KONKUR_DATE] = serialized
         }
     }
 }

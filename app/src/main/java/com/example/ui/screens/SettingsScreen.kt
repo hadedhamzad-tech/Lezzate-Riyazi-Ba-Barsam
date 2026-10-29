@@ -36,9 +36,21 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material.icons.filled.Today
+import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import com.example.BuildConfig
 import com.example.data.settings.ThemeMode
 import com.example.data.settings.UserSettings
+import com.example.util.JalaliCalendarUtils
+import com.example.util.KonkurCountdown
 import com.example.util.PersianUtils
 
 @Composable
@@ -46,6 +58,7 @@ fun SettingsScreen(
     userSettings: UserSettings,
     onThemeModeChange: (ThemeMode) -> Unit,
     onSoundEnabledChange: (Boolean) -> Unit,
+    onKonkurDateChange: (Int, Int, Int) -> Unit = { _, _, _ -> },
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -183,6 +196,168 @@ fun SettingsScreen(
                     ),
                     modifier = Modifier.testTag("sound_switch")
                 )
+            }
+        }
+
+        // Konkur Date Card
+        var yearExpanded by remember { mutableStateOf(false) }
+        var monthExpanded by remember { mutableStateOf(false) }
+        var dayExpanded by remember { mutableStateOf(false) }
+
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            ),
+            shape = MaterialTheme.shapes.medium,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Today,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "تاریخ کنکور",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // Day dropdown
+                    Box(modifier = Modifier.weight(1f)) {
+                        OutlinedButton(
+                            onClick = { dayExpanded = true },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("settings_konkur_day")
+                        ) {
+                            Text(
+                                text = "${userSettings.konkurDate.day}",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = dayExpanded,
+                            onDismissRequest = { dayExpanded = false }
+                        ) {
+                            val maxDays = JalaliCalendarUtils.daysInJalaliMonth(
+                                userSettings.konkurDate.year,
+                                userSettings.konkurDate.month
+                            )
+                            (1..maxDays).forEach { d ->
+                                DropdownMenuItem(
+                                    text = { Text("$d") },
+                                    onClick = {
+                                        dayExpanded = false
+                                        onKonkurDateChange(
+                                            userSettings.konkurDate.year,
+                                            userSettings.konkurDate.month,
+                                            d
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    // Month dropdown
+                    Box(modifier = Modifier.weight(1.3f)) {
+                        val currentMonthName = JalaliCalendarUtils.JALALI_MONTH_NAMES.getOrElse(userSettings.konkurDate.month - 1) { "" }
+                        OutlinedButton(
+                            onClick = { monthExpanded = true },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("settings_konkur_month")
+                        ) {
+                            Text(
+                                text = currentMonthName,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = monthExpanded,
+                            onDismissRequest = { monthExpanded = false }
+                        ) {
+                            JalaliCalendarUtils.JALALI_MONTH_NAMES.forEachIndexed { index, name ->
+                                val m = index + 1
+                                DropdownMenuItem(
+                                    text = { Text(name) },
+                                    onClick = {
+                                        monthExpanded = false
+                                        val maxDays = JalaliCalendarUtils.daysInJalaliMonth(userSettings.konkurDate.year, m)
+                                        val clampedDay = userSettings.konkurDate.day.coerceAtMost(maxDays)
+                                        onKonkurDateChange(userSettings.konkurDate.year, m, clampedDay)
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    // Year dropdown
+                    Box(modifier = Modifier.weight(1f)) {
+                        OutlinedButton(
+                            onClick = { yearExpanded = true },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("settings_konkur_year")
+                        ) {
+                            Text(
+                                text = "${userSettings.konkurDate.year}",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = yearExpanded,
+                            onDismissRequest = { yearExpanded = false }
+                        ) {
+                            (1405..1410).forEach { y ->
+                                DropdownMenuItem(
+                                    text = { Text("$y") },
+                                    onClick = {
+                                        yearExpanded = false
+                                        val maxDays = JalaliCalendarUtils.daysInJalaliMonth(y, userSettings.konkurDate.month)
+                                        val clampedDay = userSettings.konkurDate.day.coerceAtMost(maxDays)
+                                        onKonkurDateChange(y, userSettings.konkurDate.month, clampedDay)
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Button(
+                    onClick = {
+                        onKonkurDateChange(
+                            KonkurCountdown.DEFAULT_YEAR,
+                            KonkurCountdown.DEFAULT_MONTH,
+                            KonkurCountdown.DEFAULT_DAY
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("settings_konkur_reset")
+                ) {
+                    Text(
+                        text = "بازگشت به پیشفرض (11 تیر 1406)",
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
             }
         }
 

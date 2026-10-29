@@ -36,6 +36,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.util.JalaliCalendarUtils
+import com.example.util.JalaliDate
+import com.example.util.KonkurCountdown
 import com.example.util.PersianUtils
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -44,6 +46,7 @@ import java.util.Locale
 
 @Composable
 fun DashboardScreen(
+    konkurDate: JalaliDate = KonkurCountdown.DEFAULT,
     onNavigateToPractice: () -> Unit = {},
     onNavigateToExam: () -> Unit = {},
     timeSource: () -> Long = { System.currentTimeMillis() },
@@ -79,6 +82,12 @@ fun DashboardScreen(
     val greeting = DashboardTexts.getGreeting(hour, minute)
     val weekdayMessage = DashboardTexts.getWeekdayMessage(weekdayName)
     val slogan = DashboardTexts.getSloganOfTheDay(jalaliDate.year, jalaliDate.month, jalaliDate.day)
+
+    val daysUntilKonkur = KonkurCountdown.daysUntil(gy, gm, gd, konkurDate)
+    val countdownDisplay = KonkurCountdown.display(daysUntilKonkur)
+    val targetGregorian = JalaliCalendarUtils.jalaliToGregorian(konkurDate.year, konkurDate.month, konkurDate.day)
+    val targetWeekdayName = JalaliCalendarUtils.getWeekdayNameForDate(targetGregorian.first, targetGregorian.second, targetGregorian.third)
+    val targetFormattedDate = konkurDate.formatPersianDate(targetWeekdayName)
 
     val scrollState = rememberScrollState()
 
@@ -136,6 +145,58 @@ fun DashboardScreen(
                         modifier = Modifier.testTag("dashboard_live_clock")
                     )
                 }
+            }
+        }
+
+        // Konkur Countdown Card
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("dashboard_konkur_card")
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "روزشمار کنکور 🎡",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+
+                val ltrBigText = "${PersianUtils.LRI}${countdownDisplay.bigText}${PersianUtils.PDI}"
+                Text(
+                    text = ltrBigText,
+                    style = MaterialTheme.typography.displaySmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                    modifier = Modifier.testTag("dashboard_konkur_days_text")
+                )
+
+                Text(
+                    text = countdownDisplay.message,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+
+                if (countdownDisplay.weeksText != null) {
+                    Text(
+                        text = countdownDisplay.weeksText,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.85f)
+                    )
+                }
+
+                Text(
+                    text = "کنکور: $targetFormattedDate",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f)
+                )
             }
         }
 

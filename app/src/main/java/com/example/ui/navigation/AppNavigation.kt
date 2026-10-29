@@ -101,6 +101,7 @@ fun AppNavigation(
             ) {
                 composable(BottomTab.Dashboard.route) {
                     DashboardScreen(
+                        konkurDate = userSettings.konkurDate,
                         onNavigateToPractice = {
                             navController.navigate(BottomTab.Practice.route) {
                                 popUpTo(navController.graph.findStartDestination().id) {
@@ -150,6 +151,11 @@ fun AppNavigation(
                         onSoundEnabledChange = { enabled: Boolean ->
                             coroutineScope.launch {
                                 settingsRepository.setSoundEnabled(enabled)
+                            }
+                        },
+                        onKonkurDateChange = { y: Int, m: Int, d: Int ->
+                            coroutineScope.launch {
+                                settingsRepository.setKonkurDate(y, m, d)
                             }
                         },
                         onNavigateBack = { navController.popBackStack() }
