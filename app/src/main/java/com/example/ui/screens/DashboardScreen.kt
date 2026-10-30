@@ -158,8 +158,8 @@ fun DashboardScreen(
                 .testTag("dashboard_konkur_card")
         ) {
             Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier.padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
                     text = "روزشمار کنکور 🎡",
@@ -170,7 +170,7 @@ fun DashboardScreen(
 
                 Text(
                     text = countdownDisplay.bigText,
-                    style = MaterialTheme.typography.displaySmall,
+                    style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onTertiaryContainer,
                     modifier = Modifier.testTag("dashboard_konkur_days_text")

@@ -256,7 +256,7 @@ fun SettingsScreen(
                         DropdownMenu(
                             expanded = dayExpanded,
                             onDismissRequest = { dayExpanded = false },
-                            modifier = Modifier.heightIn(max = 240.dp)
+                            modifier = Modifier.heightIn(max = 180.dp)
                         ) {
                             val maxDays = JalaliCalendarUtils.daysInJalaliMonth(
                                 userSettings.konkurDate.year,
@@ -295,7 +295,7 @@ fun SettingsScreen(
                         DropdownMenu(
                             expanded = monthExpanded,
                             onDismissRequest = { monthExpanded = false },
-                            modifier = Modifier.heightIn(max = 240.dp)
+                            modifier = Modifier.heightIn(max = 180.dp)
                         ) {
                             JalaliCalendarUtils.JALALI_MONTH_NAMES.forEachIndexed { index, name ->
                                 val m = index + 1
@@ -328,7 +328,7 @@ fun SettingsScreen(
                         DropdownMenu(
                             expanded = yearExpanded,
                             onDismissRequest = { yearExpanded = false },
-                            modifier = Modifier.heightIn(max = 240.dp)
+                            modifier = Modifier.heightIn(max = 180.dp)
                         ) {
                             (1405..1410).forEach { y ->
                                 DropdownMenuItem(
