@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.ui.components.UnitCircleCard
 import com.example.util.JalaliCalendarUtils
 import com.example.util.JalaliDate
 import com.example.util.KonkurCountdown
@@ -322,5 +323,8 @@ fun DashboardScreen(
                 )
             }
         }
+
+        Spacer(modifier = Modifier.height(8.dp))
+        UnitCircleCard()
     }
 }
