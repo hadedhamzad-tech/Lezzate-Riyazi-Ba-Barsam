@@ -51,7 +51,7 @@ class KonkurCountdownTest {
     fun testDisplayStrings() {
         val disp246 = KonkurCountdown.display(246L)
         assertEquals("246 روز", disp246.bigText)
-        assertEquals("تا بزرگترین ماجراجویی! 🚀", disp246.message)
+        assertEquals("تا بزرگ\u200cترین ماجراجویی! 🚀", disp246.message)
         assertEquals("35 هفته و 1 روز", disp246.weeksText)
 
         val disp1 = KonkurCountdown.display(1L)
@@ -61,7 +61,7 @@ class KonkurCountdownTest {
 
         val disp0 = KonkurCountdown.display(0L)
         assertEquals("امروز", disp0.bigText)
-        assertEquals("امروز روز کنکوره! تو آمادهای؛ با آرامش برو و بدرخش 🏆", disp0.message)
+        assertEquals("امروز روز کنکوره! تو آماده\u200cای؛ با آرامش برو و بدرخش 🏆", disp0.message)
         assertNull(disp0.weeksText)
 
         val dispPast = KonkurCountdown.display(-5L)

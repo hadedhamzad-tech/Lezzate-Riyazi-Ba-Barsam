@@ -168,9 +168,8 @@ fun DashboardScreen(
                     color = MaterialTheme.colorScheme.onTertiaryContainer
                 )
 
-                val ltrBigText = "${PersianUtils.LRI}${countdownDisplay.bigText}${PersianUtils.PDI}"
                 Text(
-                    text = ltrBigText,
+                    text = countdownDisplay.bigText,
                     style = MaterialTheme.typography.displaySmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onTertiaryContainer,

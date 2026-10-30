@@ -37,6 +37,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material.icons.filled.Today
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
@@ -254,7 +255,8 @@ fun SettingsScreen(
                         }
                         DropdownMenu(
                             expanded = dayExpanded,
-                            onDismissRequest = { dayExpanded = false }
+                            onDismissRequest = { dayExpanded = false },
+                            modifier = Modifier.heightIn(max = 240.dp)
                         ) {
                             val maxDays = JalaliCalendarUtils.daysInJalaliMonth(
                                 userSettings.konkurDate.year,
@@ -292,7 +294,8 @@ fun SettingsScreen(
                         }
                         DropdownMenu(
                             expanded = monthExpanded,
-                            onDismissRequest = { monthExpanded = false }
+                            onDismissRequest = { monthExpanded = false },
+                            modifier = Modifier.heightIn(max = 240.dp)
                         ) {
                             JalaliCalendarUtils.JALALI_MONTH_NAMES.forEachIndexed { index, name ->
                                 val m = index + 1
@@ -324,7 +327,8 @@ fun SettingsScreen(
                         }
                         DropdownMenu(
                             expanded = yearExpanded,
-                            onDismissRequest = { yearExpanded = false }
+                            onDismissRequest = { yearExpanded = false },
+                            modifier = Modifier.heightIn(max = 240.dp)
                         ) {
                             (1405..1410).forEach { y ->
                                 DropdownMenuItem(
@@ -354,7 +358,7 @@ fun SettingsScreen(
                         .testTag("settings_konkur_reset")
                 ) {
                     Text(
-                        text = "بازگشت به پیشفرض (11 تیر 1406)",
+                        text = "بازگشت به پیش\u200cفرض (11 تیر 1406)",
                         style = MaterialTheme.typography.labelLarge
                     )
                 }

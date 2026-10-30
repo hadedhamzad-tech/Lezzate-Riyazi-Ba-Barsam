@@ -36,7 +36,7 @@ object KonkurCountdown {
         return when {
             days >= 2 -> CountdownDisplay(
                 bigText = "$days روز",
-                message = "تا بزرگترین ماجراجویی! 🚀",
+                message = "تا بزرگ\u200cترین ماجراجویی! 🚀",
                 weeksText = weeksText
             )
             days == 1L -> CountdownDisplay(
@@ -46,7 +46,7 @@ object KonkurCountdown {
             )
             days == 0L -> CountdownDisplay(
                 bigText = "امروز",
-                message = "امروز روز کنکوره! تو آمادهای؛ با آرامش برو و بدرخش 🏆",
+                message = "امروز روز کنکوره! تو آماده\u200cای؛ با آرامش برو و بدرخش 🏆",
                 weeksText = null
             )
             else -> CountdownDisplay(
