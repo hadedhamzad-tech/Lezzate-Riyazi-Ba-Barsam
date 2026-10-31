@@ -24,8 +24,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.ui.components.ConicSectionCard
 import com.example.ui.components.UnitCircleCard
 
 @Composable
@@ -53,7 +55,7 @@ fun LabScreen(
             Tab(
                 selected = selectedTabIndex == 1,
                 onClick = { selectedTabIndex = 1 },
-                text = { Text("هندسه (به\u200cزودی)", style = MaterialTheme.typography.titleMedium) },
+                text = { Text("هندسه", style = MaterialTheme.typography.titleMedium) },
                 modifier = Modifier.testTag("lab_tab_geometry")
             )
         }
@@ -95,32 +97,21 @@ fun LabScreen(
                 }
             }
             1 -> {
-                Box(
+                val scrollState = rememberScrollState()
+                Column(
                     modifier = Modifier
                         .fillMaxSize()
+                        .verticalScroll(scrollState)
                         .padding(16.dp),
-                    contentAlignment = Alignment.Center
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Card(
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                        ),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(24.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "هندسه به\u200cزودی با شکل\u200cهای زنده می\u200cآید 🔺⭕🥚",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    }
+                    Text(
+                        text = "مقاطع مخروطی",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    ConicSectionCard()
                 }
             }
         }
