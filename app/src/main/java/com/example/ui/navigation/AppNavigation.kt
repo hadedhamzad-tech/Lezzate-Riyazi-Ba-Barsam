@@ -28,6 +28,7 @@ import com.example.ui.screens.DashboardScreen
 import com.example.ui.screens.ExamScreen
 import com.example.ui.screens.ExamViewModel
 import com.example.ui.screens.ExamViewModelFactory
+import com.example.ui.screens.LabScreen
 import com.example.ui.screens.MistakesScreen
 import com.example.ui.screens.PracticeScreen
 import com.example.ui.screens.PracticeViewModel
@@ -48,9 +49,10 @@ fun AppNavigation(
     val currentRoute = navBackStackEntry?.destination?.route ?: BottomTab.Dashboard.route
     val coroutineScope = rememberCoroutineScope()
 
-    val isSettingsRoute = currentRoute == NavDestinations.SETTINGS
+    val isSecondaryRoute = currentRoute == NavDestinations.SETTINGS || currentRoute == NavDestinations.LAB
     val currentTitle = when (currentRoute) {
         NavDestinations.SETTINGS -> "تنظیمات"
+        NavDestinations.LAB -> "آزمایشگاه ریاضی"
         BottomTab.Dashboard.route -> BottomTab.Dashboard.title
         BottomTab.Practice.route -> BottomTab.Practice.title
         BottomTab.Exam.route -> BottomTab.Exam.title
@@ -64,7 +66,7 @@ fun AppNavigation(
             topBar = {
                 AppTopBar(
                     title = currentTitle,
-                    canNavigateBack = isSettingsRoute,
+                    canNavigateBack = isSecondaryRoute,
                     onNavigateBack = { navController.popBackStack() },
                     onOpenSettings = {
                         navController.navigate(NavDestinations.SETTINGS) {
@@ -74,7 +76,7 @@ fun AppNavigation(
                 )
             },
             bottomBar = {
-                if (!isSettingsRoute) {
+                if (!isSecondaryRoute) {
                     AppBottomBar(
                         currentRoute = currentRoute,
                         onTabSelected = { tab ->
@@ -119,6 +121,11 @@ fun AppNavigation(
                                 launchSingleTop = true
                                 restoreState = true
                             }
+                        },
+                        onNavigateToLab = {
+                            navController.navigate(NavDestinations.LAB) {
+                                launchSingleTop = true
+                            }
                         }
                     )
                 }
@@ -160,6 +167,9 @@ fun AppNavigation(
                         },
                         onNavigateBack = { navController.popBackStack() }
                     )
+                }
+                composable(NavDestinations.LAB) {
+                    LabScreen()
                 }
             }
         }

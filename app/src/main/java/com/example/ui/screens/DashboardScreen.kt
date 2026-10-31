@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.filled.Science
 import androidx.compose.material.icons.filled.Today
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -50,6 +51,7 @@ fun DashboardScreen(
     konkurDate: JalaliDate = KonkurCountdown.DEFAULT,
     onNavigateToPractice: () -> Unit = {},
     onNavigateToExam: () -> Unit = {},
+    onNavigateToLab: () -> Unit = {},
     timeSource: () -> Long = { System.currentTimeMillis() },
     modifier: Modifier = Modifier
 ) {
@@ -326,5 +328,29 @@ fun DashboardScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
         UnitCircleCard()
+
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(
+            onClick = onNavigateToLab,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.tertiary,
+                contentColor = MaterialTheme.colorScheme.onTertiary
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(54.dp)
+                .testTag("dashboard_lab_button")
+        ) {
+            Icon(
+                imageVector = Icons.Default.Science,
+                contentDescription = null
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "آزمایشگاه ریاضی 🔬",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+        }
     }
 }

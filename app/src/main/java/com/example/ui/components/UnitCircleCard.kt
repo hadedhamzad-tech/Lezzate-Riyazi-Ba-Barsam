@@ -13,9 +13,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +31,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
@@ -45,17 +48,20 @@ private val ColorAmber = Color(0xFFFFB300)
 private val ColorGreen = Color(0xFF00E676)
 private val ColorGrid = Color(0xFF334155)
 
-private const val ANGULAR_SPEED_RAD_PER_SEC = 1.0f
+const val ANGULAR_SPEED_RAD_PER_SEC = 1.0f
 private const val MAX_DT_SECONDS = 0.05f
 private const val SINE_SAMPLE_POINTS = 120
 
 @Composable
 fun UnitCircleCard(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    height: Dp = 180.dp,
+    speedRadPerSec: Float = ANGULAR_SPEED_RAD_PER_SEC
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val isPausedState = remember { mutableStateOf(false) }
     val angleState = remember { mutableFloatStateOf(0f) }
+    val currentSpeed by rememberUpdatedState(speedRadPerSec)
 
     LaunchedEffect(lifecycleOwner, isPausedState.value) {
         if (isPausedState.value) return@LaunchedEffect
@@ -69,7 +75,7 @@ fun UnitCircleCard(
                         angleState.floatValue = UnitCircleMath.advance(
                             angleState.floatValue,
                             dt,
-                            ANGULAR_SPEED_RAD_PER_SEC
+                            currentSpeed
                         )
                     }
                     lastFrameTimeNanos = frameTimeNanos
@@ -81,7 +87,7 @@ fun UnitCircleCard(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .height(180.dp)
+            .height(height)
             .clickable { isPausedState.value = !isPausedState.value }
             .semantics {
                 contentDescription = "انیمیشن دایره\u200cی مثلثاتی؛ برای توقف یا ادامه لمس کنید"

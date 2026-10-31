@@ -74,4 +74,5 @@ sealed class BottomTab(
 
 object NavDestinations {
     const val SETTINGS = "settings"
+    const val LAB = "lab"
 }
