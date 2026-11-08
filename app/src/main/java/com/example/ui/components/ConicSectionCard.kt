@@ -105,15 +105,6 @@ fun ConicSectionCard(
             textDirection = TextDirection.Ltr
         )
     }
-    val textMeasurer = rememberTextMeasurer()
-    val readTextStyle = remember {
-        TextStyle(
-            color = ColorCyan,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Bold,
-            textDirection = TextDirection.Ltr
-        )
-    }
 
     Column(
         modifier = modifier.fillMaxWidth(),
