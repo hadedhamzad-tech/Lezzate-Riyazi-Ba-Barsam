@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.ui.components.ConicSectionCard
+import com.example.ui.components.SimilarTrianglesCard
 import com.example.ui.components.UnitCircleCard
 
 @Composable
@@ -112,6 +113,13 @@ fun LabScreen(
                         color = MaterialTheme.colorScheme.onBackground
                     )
                     ConicSectionCard()
+                    Text(
+                        text = "تشابه و قضیه\u200cی تالس",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    SimilarTrianglesCard()
                 }
             }
         }
