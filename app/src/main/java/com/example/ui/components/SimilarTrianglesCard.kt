@@ -258,15 +258,17 @@ fun SimilarTrianglesCard(
                         style = letterTextStyle
                     )
 
-                    // 7. Live readout top-start area
+                    // 7. Live readout centered below side BC
                     val kStr = ThalesMath.formatRatio(k)
                     val k2Str = ThalesMath.formatRatio(ThalesMath.areaRatio(k))
                     val readout = "k = $kStr    k² = $k2Str"
-                    drawText(
-                        textMeasurer = textMeasurer,
+                    val layout = textMeasurer.measure(
                         text = readout,
-                        topLeft = Offset(16.dp.toPx(), 14.dp.toPx()),
                         style = readTextStyle
+                    )
+                    drawText(
+                        textLayoutResult = layout,
+                        topLeft = Offset((size.width - layout.size.width) / 2f, by + 14.dp.toPx())
                     )
                 }
             }

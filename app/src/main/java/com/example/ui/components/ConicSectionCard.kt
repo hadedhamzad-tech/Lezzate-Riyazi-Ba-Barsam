@@ -23,7 +23,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -35,8 +37,13 @@ import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
@@ -89,6 +96,24 @@ fun ConicSectionCard(
     }
 
     val path = remember { Path() }
+    val textMeasurer = rememberTextMeasurer()
+    val readTextStyle = remember {
+        TextStyle(
+            color = ColorCyan,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Bold,
+            textDirection = TextDirection.Ltr
+        )
+    }
+    val textMeasurer = rememberTextMeasurer()
+    val readTextStyle = remember {
+        TextStyle(
+            color = ColorCyan,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Bold,
+            textDirection = TextDirection.Ltr
+        )
+    }
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -220,6 +245,27 @@ fun ConicSectionCard(
                         color = ColorAmber,
                         center = Offset(fx, fy),
                         radius = 4.dp.toPx()
+                    )
+
+                    // 5. Live eccentricity readout at top-start
+                    val eStr = ConicMath.formatEccentricity(e)
+                    val readout = "e = $eStr"
+                    val layout = textMeasurer.measure(
+                        text = readout,
+                        style = readTextStyle
+                    )
+                    val readoutTopLeft = Offset(16.dp.toPx(), 14.dp.toPx())
+                    val padH = 6.dp.toPx()
+                    val padV = 3.dp.toPx()
+                    drawRoundRect(
+                        color = ColorBackground.copy(alpha = 0.75f),
+                        topLeft = Offset(readoutTopLeft.x - padH, readoutTopLeft.y - padV),
+                        size = Size(layout.size.width + 2f * padH, layout.size.height + 2f * padV),
+                        cornerRadius = CornerRadius(6.dp.toPx(), 6.dp.toPx())
+                    )
+                    drawText(
+                        textLayoutResult = layout,
+                        topLeft = readoutTopLeft
                     )
                 }
             }

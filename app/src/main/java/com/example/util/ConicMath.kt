@@ -45,4 +45,6 @@ object ConicMath {
         val clamped = (e - 1f).coerceIn(-1f, 1f)
         return asin(clamped.toDouble()).toFloat()
     }
+
+    fun formatEccentricity(e: Float): String = String.format(java.util.Locale.US, "%.2f", e)
 }

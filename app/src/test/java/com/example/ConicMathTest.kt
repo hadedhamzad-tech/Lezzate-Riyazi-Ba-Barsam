@@ -101,4 +101,12 @@ class ConicMathTest {
             assertEquals("Round-trip failed for e = $e", e, recoveredE, eps)
         }
     }
+
+    @Test
+    fun testFormatEccentricity() {
+        assertEquals("0.00", ConicMath.formatEccentricity(0f))
+        assertEquals("1.00", ConicMath.formatEccentricity(1f))
+        assertEquals("0.46", ConicMath.formatEccentricity(0.456f))
+        assertEquals("2.00", ConicMath.formatEccentricity(1.999f))
+    }
 }
