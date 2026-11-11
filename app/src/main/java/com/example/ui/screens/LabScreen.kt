@@ -27,8 +27,12 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.FilterChip
 import com.example.ui.components.ConicSectionCard
 import com.example.ui.components.SimilarTrianglesCard
+import com.example.ui.components.TransformationsCard
 import com.example.ui.components.UnitCircleCard
 
 @Composable
@@ -99,6 +103,8 @@ fun LabScreen(
             }
             1 -> {
                 val scrollState = rememberScrollState()
+                var selectedScene by rememberSaveable { mutableIntStateOf(0) }
+
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -106,20 +112,62 @@ fun LabScreen(
                         .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Text(
-                        text = "مقاطع مخروطی",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    ConicSectionCard()
-                    Text(
-                        text = "تشابه و قضیه\u200cی تالس",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    SimilarTrianglesCard()
+                    val chipScrollState = rememberScrollState()
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(chipScrollState),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        FilterChip(
+                            selected = selectedScene == 0,
+                            onClick = { selectedScene = 0 },
+                            label = { Text("مقاطع مخروطی") },
+                            modifier = Modifier.testTag("lab_scene_conic")
+                        )
+                        FilterChip(
+                            selected = selectedScene == 1,
+                            onClick = { selectedScene = 1 },
+                            label = { Text("تشابه و تالس") },
+                            modifier = Modifier.testTag("lab_scene_similar")
+                        )
+                        FilterChip(
+                            selected = selectedScene == 2,
+                            onClick = { selectedScene = 2 },
+                            label = { Text("تبدیل\u200cها") },
+                            modifier = Modifier.testTag("lab_scene_transform")
+                        )
+                    }
+
+                    when (selectedScene) {
+                        0 -> {
+                            Text(
+                                text = "مقاطع مخروطی",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                            ConicSectionCard()
+                        }
+                        1 -> {
+                            Text(
+                                text = "تشابه و قضیه\u200cی تالس",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                            SimilarTrianglesCard()
+                        }
+                        2 -> {
+                            Text(
+                                text = "تبدیل\u200cهای هندسی",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                            TransformationsCard()
+                        }
+                    }
                 }
             }
         }
